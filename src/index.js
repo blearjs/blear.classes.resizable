@@ -231,7 +231,6 @@ pro[_initNode] = function () {
 
     the[_eastEl] = modification.create('div', {
         style: {
-            background: '#0f0',
             position: 'absolute',
             cursor: 'e-resize',
             top: 0,
@@ -243,7 +242,6 @@ pro[_initNode] = function () {
     });
     the[_southEl] = modification.create('div', {
         style: {
-            background: '#00f',
             position: 'absolute',
             cursor: 's-resize',
             left: 0,
