@@ -8,5 +8,15 @@
 'use strict';
 
 
+var Resizable = require('../src/index');
+
+var resizable = window.resizable = new Resizable({
+    el: '#demo',
+    minWidth: 100,
+    minHeight: 50,
+    maxWidth: 500,
+    maxHeight: 400,
+    ratio: 1.8
+});
 
 
