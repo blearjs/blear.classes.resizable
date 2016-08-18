@@ -75,6 +75,40 @@ var Resizable = Draggable.extend({
             draggable: false
         });
         the[_initEvent]();
+    },
+
+    getSize: function () {
+        var the = this;
+        return {
+            width: the[_sizes][0],
+            height: the[_sizes][1]
+        };
+    },
+
+    setSize: function (width, height) {
+        var the = this;
+
+        if (arguments.length === 1) {
+            height = null;
+        }
+
+        the[_setSize](width, height);
+
+        return the;
+    },
+
+    setMinSize: function () {
+        var the = this;
+        var options = the[_options];
+
+        return the.setSize(options.minWidth, options.minHeight);
+    },
+
+    setMaxSize: function () {
+        var the = this;
+        var options = the[_options];
+
+        return the.setSize(options.maxWidth, options.maxHeight);
     }
 });
 var _options = Resizable.sole();
@@ -87,12 +121,18 @@ var _initNode = Resizable.sole();
 var _initEvent = Resizable.sole();
 var _limitFromWidth = Resizable.sole();
 var _limitFromHeight = Resizable.sole();
+var _sizes = Resizable.sole();
+var _setSize = Resizable.sole();
+var _deltaWidth = Resizable.sole();
+var _deltaHeight = Resizable.sole();
 var pro = Resizable.prototype;
 
 pro[_initData] = function () {
     var the = this;
     var options = the[_options];
     var optionRatio = options.ratio;
+
+    the[_sizes] = [];
 
     if (!optionRatio) {
         return;
@@ -211,25 +251,23 @@ pro[_initNode] = function () {
     modification.insert(the[_southEl], the[_resizeEl]);
 };
 
-
 pro[_initEvent] = function () {
     var the = this;
-    var outerWidth = 0;
+    var outerWidth = layout.outerWidth(the[_resizeEl]);
     var styleWidth = 0;
-    var outerHeight = 0;
+    var outerHeight = layout.outerHeight(the[_resizeEl]);
     var styleHeight = 0;
     var deltaWidth = 0;
     var deltaHeight = 0;
     var isEast = true;
 
+    styleWidth = number.parseFloat(attribute.style(the[_resizeEl], 'width'));
+    the[_deltaWidth] = deltaWidth = outerWidth - styleWidth;
+    styleHeight = number.parseFloat(attribute.style(the[_resizeEl], 'height'));
+    the[_deltaHeight] = deltaHeight = outerHeight - styleHeight;
+
     the.on('dragStart', function (meta) {
         isEast = meta.handleEl === the[_eastEl];
-        outerWidth = layout.outerWidth(the[_resizeEl]);
-        styleWidth = number.parseFloat(attribute.style(the[_resizeEl], 'width'));
-        deltaWidth = outerWidth - styleWidth;
-        outerHeight = layout.outerHeight(the[_resizeEl]);
-        styleHeight = number.parseFloat(attribute.style(the[_resizeEl], 'height'));
-        deltaHeight = outerHeight - styleHeight;
     });
 
     the.on('dragMove', function (meta) {
@@ -245,6 +283,10 @@ pro[_initEvent] = function () {
 
         var setWidth = limitSizes[0] === null ? styleWidth : limitSizes[0] - deltaWidth;
         var setHeight = limitSizes[1] === null ? styleHeight : limitSizes[1] - deltaHeight;
+        var outerWidth = setWidth + deltaWidth;
+        var outerHeight = styleHeight + deltaHeight;
+
+        the[_sizes] = [outerWidth, outerHeight];
         attribute.style(the[_resizeEl], {
             width: setWidth,
             height: setHeight
@@ -255,7 +297,6 @@ pro[_initEvent] = function () {
 
     });
 };
-
 
 pro[_limitFromWidth] = function (width) {
     var the = this;
@@ -269,7 +310,6 @@ pro[_limitFromWidth] = function (width) {
     return [width, height];
 };
 
-
 pro[_limitFromHeight] = function (height) {
     var the = this;
     var options = the[_options];
@@ -282,6 +322,36 @@ pro[_limitFromHeight] = function (height) {
     return [width, height];
 };
 
+pro[_setSize] = function (width, height) {
+    var the = this;
+    var options = the[_options];
+    var sizes;
+
+    if (width !== null && height !== null) {
+        width = Math.max(width, options.minWidth);
+        width = Math.min(width, options.maxWidth);
+        height = Math.max(height, options.minHeight);
+        height = Math.min(height, options.maxHeight);
+    } else if (width !== null) {
+        sizes = the[_limitFromWidth](width);
+        width = sizes[0];
+        height = sizes[1];
+    } else if (height !== null) {
+        sizes = the[_limitFromHeight](height);
+        width = sizes[0];
+        height = sizes[1];
+    }
+
+    if (width !== null) {
+        var setWidth = width - the[_deltaWidth];
+        attribute.style(the[_resizeEl], 'width', setWidth);
+    }
+
+    if (height !== null) {
+        var setHeight = height - the[_deltaHeight];
+        attribute.style(the[_resizeEl], 'height', setHeight);
+    }
+};
 
 Resizable.defaults = defaults;
 module.exports = Resizable;
