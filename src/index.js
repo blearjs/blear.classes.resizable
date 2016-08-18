@@ -1,7 +1,7 @@
 /**
  * blear.classes.resizable
  * @author ydr.me
- * @create 2016年06月04日14:09:36
+ * @create 2016年08月18日18:21:36
  */
 
 'use strict';
@@ -77,6 +77,10 @@ var Resizable = Draggable.extend({
         the[_initEvent]();
     },
 
+    /**
+     * 获取当前尺寸
+     * @returns {{width: *, height: *}}
+     */
     getSize: function () {
         var the = this;
         return {
@@ -85,6 +89,13 @@ var Resizable = Draggable.extend({
         };
     },
 
+
+    /**
+     * 设置尺寸
+     * @param width {Number} 宽度
+     * @param [height] {NUmber} 高度
+     * @returns {Resizable}
+     */
     setSize: function (width, height) {
         var the = this;
 
@@ -97,6 +108,11 @@ var Resizable = Draggable.extend({
         return the;
     },
 
+
+    /**
+     * 设置最小尺寸
+     * @returns {Resizable}
+     */
     setMinSize: function () {
         var the = this;
         var options = the[_options];
@@ -104,6 +120,10 @@ var Resizable = Draggable.extend({
         return the.setSize(options.minWidth, options.minHeight);
     },
 
+    /**
+     * 设置最大尺寸
+     * @returns {Resizable}
+     */
     setMaxSize: function () {
         var the = this;
         var options = the[_options];
@@ -111,6 +131,9 @@ var Resizable = Draggable.extend({
         return the.setSize(options.maxWidth, options.maxHeight);
     },
 
+    /**
+     * 销毁实例
+     */
     destroy: function () {
         var the = this;
 
