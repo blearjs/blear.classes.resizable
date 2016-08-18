@@ -80,8 +80,8 @@ var Resizable = Draggable.extend({
     getSize: function () {
         var the = this;
         return {
-            width: the[_sizes][0],
-            height: the[_sizes][1]
+            width: the[_outerWidth],
+            height: the[_outerHeight]
         };
     },
 
@@ -109,6 +109,14 @@ var Resizable = Draggable.extend({
         var options = the[_options];
 
         return the.setSize(options.maxWidth, options.maxHeight);
+    },
+
+    destroy: function () {
+        var the = this;
+
+        modification.remove(the[_eastEl]);
+        modification.remove(the[_southEl]);
+        Resizable.superInvoke('destroy', the);
     }
 });
 var _options = Resizable.sole();
@@ -121,8 +129,9 @@ var _initNode = Resizable.sole();
 var _initEvent = Resizable.sole();
 var _limitFromWidth = Resizable.sole();
 var _limitFromHeight = Resizable.sole();
-var _sizes = Resizable.sole();
 var _setSize = Resizable.sole();
+var _outerWidth = Resizable.sole();
+var _outerHeight = Resizable.sole();
 var _deltaWidth = Resizable.sole();
 var _deltaHeight = Resizable.sole();
 var pro = Resizable.prototype;
@@ -131,8 +140,6 @@ pro[_initData] = function () {
     var the = this;
     var options = the[_options];
     var optionRatio = options.ratio;
-
-    the[_sizes] = [];
 
     if (!optionRatio) {
         return;
@@ -253,9 +260,9 @@ pro[_initNode] = function () {
 
 pro[_initEvent] = function () {
     var the = this;
-    var outerWidth = layout.outerWidth(the[_resizeEl]);
+    var outerWidth = the[_outerWidth] = layout.outerWidth(the[_resizeEl]);
     var styleWidth = 0;
-    var outerHeight = layout.outerHeight(the[_resizeEl]);
+    var outerHeight = the[_outerHeight] = layout.outerHeight(the[_resizeEl]);
     var styleHeight = 0;
     var deltaWidth = 0;
     var deltaHeight = 0;
@@ -268,6 +275,8 @@ pro[_initEvent] = function () {
 
     the.on('dragStart', function (meta) {
         isEast = meta.handleEl === the[_eastEl];
+        styleWidth = number.parseFloat(attribute.style(the[_resizeEl], 'width'));
+        styleHeight = number.parseFloat(attribute.style(the[_resizeEl], 'height'));
     });
 
     the.on('dragMove', function (meta) {
@@ -283,10 +292,10 @@ pro[_initEvent] = function () {
 
         var setWidth = limitSizes[0] === null ? styleWidth : limitSizes[0] - deltaWidth;
         var setHeight = limitSizes[1] === null ? styleHeight : limitSizes[1] - deltaHeight;
-        var outerWidth = setWidth + deltaWidth;
-        var outerHeight = styleHeight + deltaHeight;
 
-        the[_sizes] = [outerWidth, outerHeight];
+        the[_outerWidth] = setWidth + deltaWidth;
+        the[_outerHeight] = setHeight + deltaHeight;
+
         attribute.style(the[_resizeEl], {
             width: setWidth,
             height: setHeight
@@ -344,11 +353,13 @@ pro[_setSize] = function (width, height) {
 
     if (width !== null) {
         var setWidth = width - the[_deltaWidth];
+        the[_outerWidth] = width;
         attribute.style(the[_resizeEl], 'width', setWidth);
     }
 
     if (height !== null) {
         var setHeight = height - the[_deltaHeight];
+        the[_outerHeight] = height;
         attribute.style(the[_resizeEl], 'height', setHeight);
     }
 };
