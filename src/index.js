@@ -6,13 +6,13 @@
 
 'use strict';
 
-var Draggable = require('blear.classes.draggable');
-var selector = require('blear.core.selector');
-var attribute = require('blear.core.attribute');
-var layout = require('blear.core.layout');
+var Draggable =    require('blear.classes.draggable');
+var selector =     require('blear.core.selector');
+var attribute =    require('blear.core.attribute');
+var layout =       require('blear.core.layout');
 var modification = require('blear.core.modification');
-var object = require('blear.utils.object');
-var number = require('blear.utils.number');
+var object =       require('blear.utils.object');
+var number =       require('blear.utils.number');
 
 var namespace = 'blear-classes-resizable';
 var index = 0;
