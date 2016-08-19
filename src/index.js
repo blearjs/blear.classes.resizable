@@ -6,13 +6,13 @@
 
 'use strict';
 
-var Draggable =    require('blear.classes.draggable');
-var selector =     require('blear.core.selector');
-var attribute =    require('blear.core.attribute');
-var layout =       require('blear.core.layout');
+var Draggable = require('blear.classes.draggable');
+var selector = require('blear.core.selector');
+var attribute = require('blear.core.attribute');
+var layout = require('blear.core.layout');
 var modification = require('blear.core.modification');
-var object =       require('blear.utils.object');
-var number =       require('blear.utils.number');
+var object = require('blear.utils.object');
+var number = require('blear.utils.number');
 
 var namespace = 'blear-classes-resizable';
 var index = 0;
@@ -53,6 +53,12 @@ var defaults = {
     ratio: 0,
 
     /**
+     * 是否可改变尺寸，可以交给实例自己处理
+     * @type Boolean
+     */
+    resizable: true,
+
+    /**
      * 拖拽手柄尺寸
      */
     dragHandleSize: 10
@@ -79,7 +85,7 @@ var Resizable = Draggable.extend({
 
     /**
      * 获取当前尺寸
-     * @returns {{width: *, height: *}}
+     * @returns {{width: Number, height: Number}}
      */
     getSize: function () {
         var the = this;
@@ -88,7 +94,6 @@ var Resizable = Draggable.extend({
             height: the[_outerHeight]
         };
     },
-
 
     /**
      * 设置尺寸
@@ -121,6 +126,20 @@ var Resizable = Draggable.extend({
     },
 
     /**
+     * 获取最小尺寸
+     * @returns {{width: Number, height: Number}}
+     */
+    getMinSize: function () {
+        var the = this;
+        var options = the[_options];
+
+        return {
+            width: options.minWidth,
+            height: options.minHeight
+        };
+    },
+
+    /**
      * 设置最大尺寸
      * @returns {Resizable}
      */
@@ -129,6 +148,20 @@ var Resizable = Draggable.extend({
         var options = the[_options];
 
         return the.setSize(options.maxWidth, options.maxHeight);
+    },
+
+    /**
+     * 获取最大尺寸
+     * @returns {{width: Number, height: Number}}
+     */
+    getMaxSize: function () {
+        var the = this;
+        var options = the[_options];
+
+        return {
+            width: options.maxWidth,
+            height: options.maxHeight
+        };
     },
 
     /**
@@ -251,15 +284,16 @@ pro[_initNode] = function () {
 
     var borderRightWidth = number.parseFloat(attribute.style(the[_resizeEl], 'borderRightWidth'), 0);
     var borderBottomWidth = number.parseFloat(attribute.style(the[_resizeEl], 'borderBottomWidth'), 0);
+    var dragHandleSize = options.dragHandleSize;
 
     the[_eastEl] = modification.create('div', {
         style: {
             position: 'absolute',
             cursor: 'e-resize',
             top: 0,
-            right: -borderRightWidth,
+            right: -borderRightWidth - dragHandleSize / 2,
             bottom: 0,
-            width: options.dragHandleSize
+            width: dragHandleSize
         },
         'class': the[_className]
     });
@@ -269,8 +303,8 @@ pro[_initNode] = function () {
             cursor: 's-resize',
             left: 0,
             right: 0,
-            bottom: -borderBottomWidth,
-            height: options.dragHandleSize
+            bottom: -borderBottomWidth - dragHandleSize / 2,
+            height: dragHandleSize
         },
         'class': the[_className]
     });
@@ -281,23 +315,25 @@ pro[_initNode] = function () {
 
 pro[_initEvent] = function () {
     var the = this;
-    var outerWidth = the[_outerWidth] = layout.outerWidth(the[_resizeEl]);
+    var outerWidth = 0;
     var styleWidth = 0;
-    var outerHeight = the[_outerHeight] = layout.outerHeight(the[_resizeEl]);
+    var outerHeight = 0;
     var styleHeight = 0;
     var deltaWidth = 0;
     var deltaHeight = 0;
     var isEast = true;
-
-    styleWidth = number.parseFloat(attribute.style(the[_resizeEl], 'width'));
-    the[_deltaWidth] = deltaWidth = outerWidth - styleWidth;
-    styleHeight = number.parseFloat(attribute.style(the[_resizeEl], 'height'));
-    the[_deltaHeight] = deltaHeight = outerHeight - styleHeight;
+    var resizable = the[_options].resizable;
 
     the.on('dragStart', function (meta) {
         isEast = meta.handleEl === the[_eastEl];
         styleWidth = number.parseFloat(attribute.style(the[_resizeEl], 'width'));
         styleHeight = number.parseFloat(attribute.style(the[_resizeEl], 'height'));
+        outerWidth = the[_outerWidth] = layout.outerWidth(the[_resizeEl]);
+        outerHeight = the[_outerHeight] = layout.outerHeight(the[_resizeEl]);
+        the[_deltaWidth] = deltaWidth = outerWidth - styleWidth;
+        the[_deltaHeight] = deltaHeight = outerHeight - styleHeight;
+        meta.direction = isEast ? 'x' : 'y';
+        the.emit('resizeStart', meta);
     });
 
     the.on('dragMove', function (meta) {
@@ -317,14 +353,22 @@ pro[_initEvent] = function () {
         the[_outerWidth] = setWidth + deltaWidth;
         the[_outerHeight] = setHeight + deltaHeight;
 
-        attribute.style(the[_resizeEl], {
-            width: setWidth,
-            height: setHeight
-        });
+        if (resizable) {
+            attribute.style(the[_resizeEl], {
+                width: setWidth,
+                height: setHeight
+            });
+        }
+
+        meta.direction = isEast ? 'x' : 'y';
+        meta.width = the[_outerWidth];
+        meta.height = the[_outerHeight];
+        the.emit('resizeMove', meta);
     });
 
-    the.on('dragEnd', function () {
-
+    the.on('dragEnd', function (meta) {
+        meta.direction = isEast ? 'x' : 'y';
+        the.emit('resizeEnd', meta);
     });
 };
 
