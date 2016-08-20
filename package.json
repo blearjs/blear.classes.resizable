@@ -14,8 +14,8 @@
   "main": "src/index.js",
   "keywords": [
     "blear",
-    "ui",
-    "resize",
+    "classes",
+    "resizable",
     "cloudcome",
     "ydr.me"
   ],
