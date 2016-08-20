@@ -165,6 +165,18 @@ var Resizable = Draggable.extend({
     },
 
     /**
+     * 设置配置项
+     * @param [options] {*}
+     * @returns {Resizable}
+     */
+    setOptions: function (options) {
+        var the = this;
+        object.assign(the[_options], options);
+        the[_initData]();
+        return the;
+    },
+
+    /**
      * 销毁实例
      */
     destroy: function () {
